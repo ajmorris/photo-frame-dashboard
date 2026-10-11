@@ -1,0 +1,3 @@
+# Copy to .dev.vars for `wrangler dev`; in production use: npx wrangler secret put CALENDAR_FEEDS
+# One entry per iCloud calendar (Calendar app > share > Public Calendar). `people` are ids from js/data.js.
+CALENDAR_FEEDS=[{"url":"webcal://REPLACE_ME","people":["alex","jordan","maya","otto"]}]
