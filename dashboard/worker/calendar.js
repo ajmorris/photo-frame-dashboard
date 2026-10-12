@@ -69,10 +69,21 @@ export async function loadCalendar(feeds, now = new Date()) {
   const from = new Date(now.getTime() - 45 * DAY);
   const to = new Date(now.getTime() + 75 * DAY);
   const results = await Promise.allSettled(feeds.map(async (feed) => {
-    const url = feed.url.replace(/^webcal:/i, 'https:');
-    const res = await fetch(url, { headers: { accept: 'text/calendar' } });
-    if (!res.ok) throw new Error('feed ' + res.status);
-    return parseFeed(await res.text(), feed, from, to);
+    const url = feed.url.trim().replace(/^webcal:/i, 'https:');
+    let res;
+    try {
+      res = await fetch(url, { headers: { accept: 'text/calendar', 'user-agent': 'home-dashboard/1.0' }, redirect: 'follow' });
+    } catch (err) {
+      throw new Error('fetch failed (' + new URL(url).host + '): ' + (err.message || err));
+    }
+    const text = await res.text();
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' from ' + new URL(url).host + ': ' + text.slice(0, 120));
+    if (!/BEGIN:VCALENDAR/i.test(text)) throw new Error('response is not an ICS feed: ' + text.slice(0, 120));
+    try {
+      return parseFeed(text, feed, from, to);
+    } catch (err) {
+      throw new Error('parse failed: ' + (err.message || err));
+    }
   }));
   const events = [];
   const errors = [];
