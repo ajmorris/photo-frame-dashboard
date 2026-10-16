@@ -1,3 +1,12 @@
-# Copy to .dev.vars for `wrangler dev`; in production use: npx wrangler secret put CALENDAR_FEEDS
-# One entry per iCloud calendar (Calendar app > share > Public Calendar). `people` are ids from js/data.js.
+# Copy to .dev.vars for `wrangler dev`. Production: wrangler secret put <NAME>
+# One entry per iCloud calendar (Calendar app > share > Public Calendar). people ids: alex AJ, jordan Nicole, maya Chloe, otto Hudson.
 CALENDAR_FEEDS=[{"url":"webcal://REPLACE_ME","people":["alex","jordan","maya","otto"]}]
+
+# Shared family write token for iPhone Shortcuts → POST /api/presence
+PRESENCE_TOKEN=replace-with-long-random-string
+
+# Shared write token for the Grok custom MCP connector → /mcp
+AGENT_TOKEN=replace-with-another-long-random-string
+
+# Optional until you have a public Shared Album link
+# PHOTO_ALBUM=https://www.icloud.com/sharedalbum/#TOKEN_OR_photos_shared_album_URL

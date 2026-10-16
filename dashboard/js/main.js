@@ -13,4 +13,5 @@ import './views/control.js';
 import './views/agents.js';
 import './views/ambient.js';
 import './calendar-sync.js';
+import './sync.js';
 import './diag.js';

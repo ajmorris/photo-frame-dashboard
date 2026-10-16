@@ -9,5 +9,12 @@ export default defineConfig({
     target: 'chrome106',
     cssTarget: 'chrome61',
   },
-  server: { host: true },
+  server: {
+    host: true,
+    // Pair with `npm run dev:worker` so /api and /mcp hit the Cloudflare Worker locally.
+    proxy: {
+      '/api': 'http://127.0.0.1:8787',
+      '/mcp': 'http://127.0.0.1:8787',
+    },
+  },
 });

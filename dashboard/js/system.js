@@ -100,7 +100,7 @@
   App.garageOpenAlert = function () {
     App.setDevice('g-door', { state: 'open' });
     App.banner({
-      icon: 'garage', title: 'Garage open for 15 min', sub: 'No one is in the garage · Wes is 12 min away',
+      icon: 'garage', title: 'Garage open for 15 min', sub: 'No one is in the garage · AJ is 12 min away',
       action: 'Close garage', dismiss: 'Leave open',
       onAction: function () { App.openGarageSheet(); }
     });
@@ -153,7 +153,7 @@
     if (b.hasAttribute('data-fastidle')) {
       var fast = App.idle.home >= 60;
       App.idle.home = fast ? 8 : 60;
-      App.idle.ambient = fast ? 15 : 120;
+      App.idle.ambient = fast ? 15 : 60;
       App.openDemo();
       return;
     }

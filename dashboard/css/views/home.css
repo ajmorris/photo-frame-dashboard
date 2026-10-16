@@ -78,6 +78,7 @@
 
 /* ---- side column */
 .h-side { grid-column: 8 / 13; display: grid; grid-template-rows: 1fr 142px 150px; gap: 16px; min-height: 0; }
+.h-wx-credit { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin-top: 2px; }
 .h-photo { position: relative; border-radius: var(--r); overflow: hidden; background: var(--paper-2); display: block; width: 100%; }
 .h-photo-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
 .h-photo-cap {
@@ -96,8 +97,7 @@
 .h-ring.is-done .ring-bg { fill: var(--c); }
 .h-ring.is-done .num { color: var(--c-ink); }
 
-.h-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.h-shop, .h-status { display: flex; flex-direction: column; gap: 4px; }
+.h-shop { display: flex; flex-direction: column; gap: 4px; }
 .h-stat { display: flex; align-items: baseline; gap: 8px; }
 .h-stat .num { font-size: 56px; line-height: .9; }
 .h-stat small { font-size: 16px; color: var(--mute); }
