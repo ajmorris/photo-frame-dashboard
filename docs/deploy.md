@@ -112,13 +112,20 @@ npm run classroom:scrape -- --dry-run --headed --debug
 
 Until the first successful scrape, `configured` is false and the Chloe page keeps mock / last-good data with **Classroom isn’t connected**.
 
-## Chloe · Herbison Woods lunch
+## School lunch (Nutrislice)
 
-Lunch on Chloe’s page comes from Nutrislice’s public week JSON — no API key or secret. The Worker fetches this week and next week for Herbison Woods grades 3–6 (`lunch-3-6`), caches for 6 hours, and serves `GET /api/lunch`.
+Lunch comes from Nutrislice’s public week JSON — no API key or secret. The Worker fetches this week and next week, caches for 6 hours, and serves `GET /api/lunch?kid=maya|otto` (default `maya`).
 
-Public menu: [Herbison Woods lunch 3–6](https://dewittschools.nutrislice.com/menu/herbison-woods/lunch-3-6)
+| Kid | School | Menu |
+|-----|--------|------|
+| Chloe (`maya`) | Herbison Woods | [lunch 3–6](https://dewittschools.nutrislice.com/menu/herbison-woods/lunch-3-6) |
+| Hudson (`otto`) | Scott | [lunch 3–6](https://dewittschools.nutrislice.com/menu/scott/lunch-3-6) |
 
-School and menu slugs are hardcoded in `dashboard/worker/lunch.js`. The frame polls `/api/lunch` about every 30 minutes and keeps a last-good copy in `localStorage`.
+School slugs are hardcoded in `dashboard/worker/lunch.js`. The frame polls both kids about every 30 minutes and keeps last-good copies in `localStorage`.
+
+## Hudson
+
+Hudson’s page shows a two-week schedule of his calendar events (anything tagged `otto` from `CALENDAR_FEEDS`) plus Scott lunch. There is **no** Google Classroom scrape for Hudson yet.
 
 ## Frame kiosk
 

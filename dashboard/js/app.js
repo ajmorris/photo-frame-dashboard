@@ -305,6 +305,8 @@
   // ------------------------------------------------------------ stage scaling
   // Contain by default. On landscape viewports, if contain would leave side bars,
   // switch to cover so the frame fills edge-to-edge (small top/bottom crop ok).
+  // Always keep translate(-50%,-50%) so the 1920×1080 canvas stays centered in
+  // viewports smaller than the design size (inset+margin:auto does not).
   function fit() {
     var w = App.STAGE_W, h = App.STAGE_H;
     var vw = window.innerWidth, vh = window.innerHeight;
@@ -312,7 +314,7 @@
     var cover = Math.max(vw / w, vh / h);
     var sideBars = vw - w * contain;
     var s = (vw >= vh && sideBars > 24) ? cover : contain;
-    $('#stage').style.transform = Math.abs(s - 1) < 0.01 ? '' : 'scale(' + s + ')';
+    $('#stage').style.transform = 'translate(-50%, -50%) scale(' + s + ')';
   }
 
   // ------------------------------------------------------------ clock tick

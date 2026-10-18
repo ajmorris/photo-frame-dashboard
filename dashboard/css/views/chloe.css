@@ -21,8 +21,36 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
-.cl-side > .cl-panel { flex: 1; }
+.cl-side > .cl-panel { flex: 1; min-height: 0; }
+.cl-side > .cl-lunch { flex: 1.15; }
+.cl-side > .cl-todos { flex: 1; }
+
+.cl-todo-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cl-todos .cl-count {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-size: 18px;
+}
+.cl-todos .ch {
+  min-height: 64px;
+  padding: 6px 8px 6px 6px;
+}
+.cl-todos .ch-emoji {
+  width: 46px;
+  height: 46px;
+  font-size: 26px;
+  border-radius: 12px;
+}
+.cl-todos .ch-text b { font-size: 17px; }
 
 .cl-status {
   flex: none;

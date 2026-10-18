@@ -171,8 +171,8 @@
       var k = e.key.toLowerCase();
       if (k === 'd') { $('#demo').classList.contains('is-open') ? closeDemo() : App.openDemo(); }
       if (k === 'escape') { closeDemo(); App.closeSheet(); }
-      var views = ['home', 'calendar', 'tasks', 'shopping', 'chloe', 'control', 'agents'];
-      if (k >= '1' && k <= '7') App.go(views[+k - 1]);
+      var views = ['home', 'calendar', 'tasks', 'shopping', 'chloe', 'hudson', 'control', 'agents'];
+      if (k >= '1' && k <= '8') App.go(views[+k - 1]);
     });
   });
 })();
