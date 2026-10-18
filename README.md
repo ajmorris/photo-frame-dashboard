@@ -77,6 +77,14 @@ section unless the identity checks match exactly.
   [app-analysis.md](docs/app-analysis.md) for the hidden menu. The manufacturer code is
   intentionally not published here. The doc describes where it is checked in the app, so you can
   find it in your own unit's APK.
+- **Pastigio FRAME156 15.6" (RK3326, Android 8.1.0), or any Frameo frame:** follow
+  [pastigio-frame156.md](docs/pastigio-frame156.md). ADB is enabled on the frame itself with
+  **Settings → About → Enable Beta Program**; no hidden menu and no decompiling needed. It ships
+  WebView 106 already, so none of the BIUFRAME's WebView work applies, and it now boots straight
+  into the [`dashboard/`](dashboard) kiosk app as its home screen. Read its gotchas before reusing
+  `scripts/biuframe-setup.sh`: this unit's `su` corrupts binary data through `adb exec-out`, its
+  32-bit `dd` cannot seek past 2 GiB, and every launcher tried except one crashes because the
+  framework has no wallpaper service.
 - **Something else:** work through the phase map. Expect the hidden-menu, root and backup routes
   to differ. Create `docs/<device>.md` and record everything.
 

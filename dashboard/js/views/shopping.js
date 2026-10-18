@@ -163,6 +163,7 @@
     if (hadQuery) paintSuggest(); else refreshSuggestFor(g);
     flash(g);
     App.emit('data');
+    if (App.pushShopping) App.pushShopping();
     App.toast(msg, { icon: 'cart', ms: 3000 });
   }
 
@@ -177,6 +178,7 @@
       removeRow(g);
       refreshSuggestFor(g);
       App.emit('data');
+      if (App.pushShopping) App.pushShopping();
     }, 1200);
     App.toast('<b>' + App.esc(g.name) + '</b> checked off', {
       icon: 'check',
@@ -188,6 +190,7 @@
         else { var r = V.el.querySelector('.s-list [data-id="' + g.id + '"]'); if (r) r.classList.remove('is-checking'); }
         refreshSuggestFor(g);
         App.emit('data');
+        if (App.pushShopping) App.pushShopping();
       }
     });
   }
@@ -205,6 +208,7 @@
       q.qty = Math.max(1, q.qty + +t.dataset.qty);
       t.parentNode.querySelector('.num').textContent = q.qty;
       refreshSuggestFor(q);
+      if (App.pushShopping) App.pushShopping();
       return;
     }
     if ((t = e.target.closest('[data-add]'))) return add(t.dataset.add);
@@ -213,6 +217,7 @@
     if ((t = e.target.closest('[data-revive]'))) {
       var r = D.groceries.filter(function (x) { return x.id === t.dataset.revive; })[0];
       r.done = false; paintList(); paintSuggest(); App.emit('data');
+      if (App.pushShopping) App.pushShopping();
       return App.toast('Added back <b>' + App.esc(r.name) + '</b>', { icon: 'cart', ms: 2500 });
     }
     if ((t = e.target.closest('[data-clear]'))) {
@@ -220,8 +225,12 @@
       D.groceries = D.groceries.filter(function (x) { return gone.indexOf(x) < 0; });
       V.drawer = false;
       paintList();
+      if (App.pushShopping) App.pushShopping();
       App.toast('Cleared ' + gone.length + ' items', {
-        icon: 'check', undo: function () { D.groceries = D.groceries.concat(gone); paintList(); }
+        icon: 'check', undo: function () {
+          D.groceries = D.groceries.concat(gone); paintList();
+          if (App.pushShopping) App.pushShopping();
+        }
       });
     }
   }
@@ -232,4 +241,5 @@
       render();
     }
   });
+  App.on('data', function () { if (App.current === 'shopping' && V.el) render(); });
 })();

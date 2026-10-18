@@ -4,6 +4,7 @@
   var D = window.DATA;
 
   function src(p, big) {
+    if (p.src) return p.src;
     var w = p.o === 'p' ? 800 : 1600, h = p.o === 'p' ? 1200 : 1000;
     if (!big) { w = Math.round(w / 2); h = Math.round(h / 2); }
     return App.img(p.seed, w, h);
@@ -19,7 +20,7 @@
     return {
       date: App.fmt.month(d) + ' ' + d.getDate() + ', ' + d.getFullYear(),
       monthYear: App.fmt.month(d) + ' ' + d.getFullYear(),
-      kicker: kicker, onThisDay: onThisDay, place: p.place, from: App.person(p.from)
+      kicker: kicker, onThisDay: onThisDay, place: p.place || '', from: App.person(p.from || 'family')
     };
   };
 

@@ -1,8 +1,23 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "home-dashboard",
+  "main": "worker/index.js",
   "compatibility_date": "2026-09-30",
   "assets": {
-    "directory": "./dist"
-  }
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/mcp"]
+  },
+  "vars": {
+    "WEATHER_LAT": "42.84226",
+    "WEATHER_LON": "-84.56915",
+    "DASHBOARD_TZ": "America/Detroit"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "STORE",
+      "id": "bf621eb9c245463c9e743620ee2467e8",
+      "preview_id": "bf621eb9c245463c9e743620ee2467e8"
+    }
+  ]
 }

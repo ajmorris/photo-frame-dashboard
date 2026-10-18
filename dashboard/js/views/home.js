@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   var D = window.DATA, V = {};
+  var STALE_MS = 12 * 60 * 60 * 1000;
 
   function clock() {
     var n = App.now();
@@ -24,12 +25,26 @@
         var lift = tmax === tmin ? 0 : Math.round((h.t - tmin) / (tmax - tmin) * 8);
         return '<div class="h-hr' + (h.p >= 50 ? ' is-wet' : '') + '"><span class="h-hr-l">' + h.label + '</span>' +
           '<span class="h-hr-i" style="transform:translateY(' + -lift + 'px)">' + App.icon(h.c, 22) + '</span><b>' + h.t + '°</b></div>';
-      }).join('') + '</div>';
+      }).join('') + '</div>' +
+      '<div class="h-wx-credit">Open-Meteo</div>';
+  }
+
+  function presenceSub(p) {
+    if (!p.updatedAt) return '';
+    var age = Date.now() - new Date(p.updatedAt).getTime();
+    var stale = age > STALE_MS;
+    var label;
+    if (p.home) label = 'Home';
+    else if (p.eta != null && p.eta !== '') label = 'ETA ' + p.eta + ' min';
+    else label = p.status || '';
+    if (!label) return stale ? 'Stale' : '';
+    if (stale) return 'Stale · ' + App.esc(label);
+    return p.eta != null && p.eta !== '' && !p.home ? '<b>ETA ' + p.eta + ' min</b>' : App.esc(label);
   }
 
   function presence() {
     return D.people.map(function (p) {
-      var sub = p.home ? 'Home' : (p.eta ? '<b>ETA ' + p.eta + ' min</b>' : p.status);
+      var sub = presenceSub(p);
       return '<div class="h-who' + (p.home ? ' is-home' : '') + '" style="' + App.pstyle(p) + '">' +
         App.avatar(p, 36, p.home ? '' : 'avatar--away') +
         '<span><b>' + p.name + '</b><small>' + sub + '</small></span></div>';
@@ -72,7 +87,7 @@
   function lanes() {
     var now = App.now();
     return D.people.map(function (p) {
-      var list = App.timedOn(now, p.id).filter(function (e) { return e.end > now; });
+      var list = App.timedOn(now, p.id).filter(function (e) { return e.end > now && !App.isFamily(e); });
       var shown = list.slice(0, 3), more = list.length - shown.length;
       return '<div class="h-lane" style="' + App.pstyle(p) + '">' +
         '<div class="h-lane-head">' + App.avatar(p, 30) + '<b>' + p.name + '</b></div>' +
@@ -118,18 +133,6 @@
       }).join('') + '</ul>';
   }
 
-  function status() {
-    var lights = D.devices.filter(function (d) { return d.type === 'light' && d.on; }).length;
-    var unlocked = D.devices.filter(function (d) { return d.type === 'lock' && !d.locked; });
-    var garage = D.devices.filter(function (d) { return d.type === 'garage'; })[0];
-    var secure = !unlocked.length && garage.state === 'closed';
-    var secText = secure ? 'All locked' : (garage.state !== 'closed' ? 'Garage open' : unlocked[0].name + ' unlocked');
-    return '<div class="label">Home</div>' +
-      '<div class="h-st-row">' + App.icon('bulb', 24) + '<b class="num">' + lights + '</b><span>lights on</span></div>' +
-      '<div class="h-st-row' + (secure ? '' : ' is-warn') + '">' + App.icon(secure ? 'lock' : 'unlock', 24) + '<span>' + secText + '</span></div>' +
-      '<div class="h-st-row">' + App.icon('thermo', 24) + '<b class="num">' + D.climate.current + '°</b><span>inside</span></div>';
-  }
-
   function paint() {
     var el = V.el;
     el.querySelector('.h-clock').innerHTML = clock();
@@ -139,12 +142,6 @@
     el.querySelector('.h-lanes').innerHTML = lanes();
     el.querySelector('.h-chores').innerHTML = chores();
     el.querySelector('.h-shop').innerHTML = shopping();
-    el.querySelector('.h-status').innerHTML = status();
-  }
-
-  function photoCaption(s) {
-    var m = App.photoMeta(s.photos[0]);
-    V.el.querySelector('.h-photo-cap').innerHTML = '<b>' + (m.onThisDay ? 'On this day · ' : '') + m.kicker + '</b><span>' + App.esc(m.place) + '</span>';
   }
 
   App.register('home', {
@@ -157,9 +154,8 @@
           '<div class="h-presence"></div>' +
           '<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes" ></div></div>' +
           '<div class="h-side">' +
-          '  <button class="h-photo" data-go="photos"><div class="h-photo-stage"></div><div class="h-photo-cap"></div></button>' +
           '  <button class="h-chores card" data-go="tasks"></button>' +
-          '  <div class="h-duo"><button class="h-shop card" data-go="shopping"></button><button class="h-status card" data-go="control"></button></div>' +
+          '  <button class="h-shop card" data-go="shopping"></button>' +
           '</div></div>';
         el.addEventListener('click', function (e) {
           var ev = e.target.closest('[data-ev]');
@@ -167,19 +163,16 @@
           var g = e.target.closest('[data-go]');
           if (g) App.go(g.dataset.go);
         });
-        V.slides = new App.Slideshow(el.querySelector('.h-photo-stage'), { layout: 'cover', captions: false, interval: 12000, onChange: photoCaption });
       }
       paint();
-      V.slides.start();
-    },
-    resume: function () { V.slides.start(); },
-    hide: function () { if (V.slides) V.slides.stop(); }
+    }
   });
   // Every minute: just the clock and next-up countdown (cheap, even while hidden). Weather on the hour.
   App.on('minute', function (n) {
     if (!V.el || !V.el.firstChild) return;
     V.el.querySelector('.h-clock').innerHTML = clock();
     V.el.querySelector('.h-hero-slot').innerHTML = hero();
+    V.el.querySelector('.h-presence').innerHTML = presence();
     if (n.getMinutes() === 0) { V.el.querySelector('.h-weather').innerHTML = weather(); V.el.querySelector('.h-lanes').innerHTML = lanes(); }
   });
   App.on('data', function () { if (App.current === 'home') paint(); });

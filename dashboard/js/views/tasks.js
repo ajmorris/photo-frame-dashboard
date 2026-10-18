@@ -11,40 +11,28 @@
       .sort(function (a, b) { return (a.done - b.done) || ((b.overdue ? 1 : 0) - (a.overdue ? 1 : 0)); });
   }
 
-  function row(c, p) {
+  function row(c) {
     var pend = V.pending[c.id];
     return '<button class="ch' + (c.done ? ' is-done' : '') + (pend ? ' is-checking' : '') + (c.overdue && !c.done ? ' is-overdue' : '') + '" data-ch="' + c.id + '">' +
-      '<span class="ch-emoji">' + c.emoji + '<span class="ch-check"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span></span>' +
+      '<span class="ch-emoji">' + (c.emoji || '✅') + '<span class="ch-check"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span></span>' +
       '<span class="ch-text"><b>' + App.esc(c.title) + '</b>' +
-      (c.overdue && !c.done ? '<small class="ch-late">Overdue</small>' : c.stars ? '<small>' + App.icon('star', 14, 'i--fill') + c.stars + (c.doneBy ? ' · ' + App.person(c.doneBy).name : '') + '</small>' : (c.doneBy ? '<small>by ' + App.person(c.doneBy).name + '</small>' : '')) +
+      (c.overdue && !c.done ? '<small class="ch-late">Overdue</small>' : (c.doneBy ? '<small>by ' + App.person(c.doneBy).name + '</small>' : '')) +
       '</span>' +
       '</button>';
-  }
-
-  function weekGrid(id) {
-    var w = D.week[id];
-    if (!w) return '';
-    var today = (App.now().getDay() + 6) % 7;
-    return '<div class="ch-week"><div class="label">This week</div><div class="ch-week-row">' + ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(function (d, i) {
-      var cls = i > today ? 'is-future' : i === today ? 'is-today' : (w[i] ? 'is-hit' : 'is-miss');
-      return '<span class="' + cls + '"><i></i>' + d + '</span>';
-    }).join('') + '</div></div>';
   }
 
   function lane(who, r) {
     var p = App.person(who), list = listFor(who, r);
     var done = list.filter(function (c) { return c.done; }).length;
     var all = list.length && done === list.length;
-    var kid = D.stars[who] != null;
     return '<section class="ch-lane' + (all ? ' is-complete' : '') + '" data-lane="' + who + '" style="' + App.pstyle(p) + '">' +
       '<header class="ch-head">' + App.avatar(p, 42) +
       '<div><b>' + (who === 'any' ? 'Anyone' : p.name) + '</b>' +
-      (kid ? '<span class="ch-stars">' + App.icon('star', 18, 'i--fill') + '<span class="num">' + D.stars[who] + '</span></span>' : '<span class="ch-sub">' + (who === 'any' ? 'Up for grabs' : (list.length ? done + ' of ' + list.length : 'Nothing')) + '</span>') + '</div>' +
+      '<span class="ch-sub">' + (who === 'any' ? 'Up for grabs' : (list.length ? done + ' of ' + list.length : 'Nothing')) + '</span></div>' +
       '<div class="ch-ring">' + App.ring(done, list.length || 1, 46) + '<span class="num">' + (all ? '✓' : list.length ? done + '/' + list.length : '–') + '</span></div>' +
       '</header>' +
-      '<div class="ch-list">' + (list.length ? list.map(function (c) { return row(c, p); }).join('') : '<div class="ch-none serif"><i>Nothing this ' + (r.id === 'evening' ? 'evening' : r.id === 'morning' ? 'morning' : 'afternoon') + '</i></div>') +
+      '<div class="ch-list">' + (list.length ? list.map(row).join('') : '<div class="ch-none serif"><i>Nothing this ' + (r.id === 'evening' ? 'evening' : r.id === 'morning' ? 'morning' : 'afternoon') + '</i></div>') +
       (all ? '<div class="ch-alldone serif">All done<i>!</i></div>' : '') + '</div>' +
-      weekGrid(who) +
       '</section>';
   }
 
@@ -70,23 +58,20 @@
       delete V.pending[c.id];
       c.done = true;
       if (by) c.doneBy = by;
-      var earner = D.stars[c.who] != null ? c.who : (by && D.stars[by] != null ? by : null);
-      if (earner && c.stars) D.stars[earner] += c.stars;
+      if (App.pushChoreToggle) App.pushChoreToggle(c);
       render();
       App.emit('data');
-      var laneList = listFor(c.who, r);
-      var laneDone = laneList.every(function (x) { return x.done; });
       var allDone = D.chores.filter(function (x) { return x.r === r.id; }).every(function (x) { return x.done; });
       if (allDone) {
         App.toast('<b>' + r.name + ' routine complete!</b> Everyone crushed it.', { icon: 'star', ms: 5000 });
         return;
       }
-      App.toast('<b>' + App.esc(c.title) + '</b> done' + (earner && c.stars ? ' · +' + c.stars + '★ ' + App.person(earner).name : ''), {
+      App.toast('<b>' + App.esc(c.title) + '</b> done' + (by ? ' · ' + App.person(by).name : ''), {
         icon: 'check',
         undo: function () {
           c.done = false;
           delete c.doneBy;
-          if (earner && c.stars) D.stars[earner] -= c.stars;
+          if (App.pushChoreToggle) App.pushChoreToggle(c);
           render();
           App.emit('data');
         }
@@ -94,9 +79,8 @@
     }, 350);
   }
 
-  // "Anyone" chores ask who did it, so stars go to the right kid
   function whoDidIt(c, btn) {
-    App.sheet('<div class="sheet-pad"><div class="label">' + c.emoji + ' ' + App.esc(c.title) + '</div><h2 class="serif sheet-h">Who did it?</h2>' +
+    App.sheet('<div class="sheet-pad"><div class="label">' + (c.emoji || '✅') + ' ' + App.esc(c.title) + '</div><h2 class="serif sheet-h">Who did it?</h2>' +
       '<div class="add-who add-who--big">' + D.people.map(function (p) {
         return '<button class="who-btn" data-by="' + p.id + '" style="' + App.pstyle(p) + '">' + App.avatar(p, 88) + '<span>' + p.name + '</span></button>';
       }).join('') + '</div></div>', {
@@ -120,9 +104,8 @@
       if (!c || V.pending[c.id]) return;
       if (c.done) {
         c.done = false;
-        var earner = D.stars[c.who] != null ? c.who : (c.doneBy && D.stars[c.doneBy] != null ? c.doneBy : null);
-        if (earner && c.stars) D.stars[earner] -= c.stars;
         delete c.doneBy;
+        if (App.pushChoreToggle) App.pushChoreToggle(c);
         render();
         App.emit('data');
         return;
@@ -139,4 +122,5 @@
     }
   });
   App.on('time', function () { V.routine = null; });
+  App.on('data', function () { if (App.current === 'tasks' && V.el) render(); });
 })();

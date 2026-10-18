@@ -45,4 +45,8 @@
   --tap: 64px;
   --ease: cubic-bezier(.2, .8, .2, 1);
   --spring: cubic-bezier(.34, 1.56, .64, 1);
+
+  /* Design canvas — Pastigio FRAME156 is 1920×1080; was 1280×800 (side letterboxing). */
+  --stage-w: 1920px;
+  --stage-h: 1080px;
 }

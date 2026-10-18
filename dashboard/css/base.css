@@ -37,12 +37,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 .label--light { color: rgba(255, 255, 255, .72); }
 .label--on { color: var(--c-ink); opacity: .8; }
 
-/* ---------------------------------------------------------------- stage (fixed 1280×800) */
+/* ---------------------------------------------------------------- stage (design canvas; JS scales to viewport) */
 .stage {
   position: absolute;
-  left: 50%; top: 50%;
-  width: 1280px; height: 800px;
-  margin: -400px 0 0 -640px;
+  inset: 0;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  margin: auto;
   transform-origin: 50% 50%;
   background: var(--paper);
   overflow: hidden;
@@ -65,6 +66,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   color: var(--ink-2);
   position: relative;
 }
+.rail-item[hidden] { display: none; }
 .rail-item.is-active { background: var(--ink); color: var(--paper); }
 .rail-item:active { background: var(--paper-2); }
 .rail-item.is-active:active { background: var(--ink-2); }
@@ -83,7 +85,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ---------------------------------------------------------------- components */
 .card { background: var(--card); border-radius: var(--r); padding: 18px 20px; position: relative; }
 button.card { display: block; width: 100%; }
-button.card:active, .h-hero:active, .h-photo:active { transform: scale(.985); }
+button.card:active, .h-hero:active { transform: scale(.985); }
 
 .avatar {
   flex: none;
@@ -292,13 +294,6 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(.985); }
 }
 .demo-grid button:active, .demo-grid button.is-on { background: #fff; color: var(--ink); }
 .demo-note { font-size: 16px; color: rgba(255, 255, 255, .6); }
-
-/* ---------------------------------------------------------------- night dashboard (tap on night clock) */
-.stage[data-mode="nightdash"] > .rail,
-.stage[data-mode="nightdash"] > .views {
-  filter: invert(1) hue-rotate(180deg) grayscale(1) sepia(1) saturate(5) hue-rotate(-38deg) brightness(.62);
-}
-.stage[data-mode="nightdash"] { background: #000; }
 
 /* ---------------------------------------------------------------- diagnostics overlay (?diag) */
 .diag {

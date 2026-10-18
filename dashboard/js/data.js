@@ -21,10 +21,10 @@ window.DATA = (function () {
   var ALL = ['alex', 'jordan', 'maya', 'otto'];
 
   var people = [
-    { id: 'alex', name: 'Wes', color: '#2D5BFF', rgb: '45 91 255', ink: '#FFFFFF', home: false, status: 'Driving home', eta: 12 },
-    { id: 'jordan', name: 'Claudia', color: '#E4007C', rgb: '228 0 124', ink: '#FFFFFF', home: false, status: 'At the office' },
-    { id: 'maya', name: 'Buzzsaw', age: 10, color: '#00A36C', rgb: '0 163 108', ink: '#FFFFFF', home: true, status: 'Home' },
-    { id: 'otto', name: 'Skidmark', age: 6, color: '#FFB000', rgb: '255 176 0', ink: '#111111', home: true, status: 'Home' }
+    { id: 'alex', name: 'AJ', color: '#2D5BFF', rgb: '45 91 255', ink: '#FFFFFF', home: false, status: '', eta: null, updatedAt: null },
+    { id: 'jordan', name: 'Nicole', color: '#E4007C', rgb: '228 0 124', ink: '#FFFFFF', home: false, status: '', eta: null, updatedAt: null },
+    { id: 'maya', name: 'Chloe', age: 10, color: '#00A36C', rgb: '0 163 108', ink: '#FFFFFF', home: false, status: '', eta: null, updatedAt: null },
+    { id: 'otto', name: 'Hudson', age: 8, color: '#FFB000', rgb: '255 176 0', ink: '#111111', home: false, status: '', eta: null, updatedAt: null }
   ];
   var family = { id: 'family', name: 'Family', color: '#111111', rgb: '17 17 17', ink: '#FFFFFF' };
 
@@ -39,15 +39,15 @@ window.DATA = (function () {
     ev(0, '12:00', '12:45', 'Dentist', ['maya', 'jordan'], { travel: 15, loc: 'Bright Smiles Dental' }),
     ev(0, '13:00', '14:00', 'Lunch with Sam', ['alex'], { loc: 'Café Rustica' }),
     ev(0, '15:45', '16:30', 'Piano lesson', ['otto'], { travel: 12, loc: "Ms. Park's Studio", notes: 'Bring the blue theory book.' }),
-    ev(0, '16:05', '16:30', 'Drive Buzzsaw to soccer', ['jordan']),
-    ev(0, '16:25', '16:50', 'Pick up Skidmark', ['jordan'], { loc: "Ms. Park's Studio" }),
+    ev(0, '16:05', '16:30', 'Drive Chloe to soccer', ['jordan']),
+    ev(0, '16:25', '16:50', 'Pick up Hudson', ['jordan'], { loc: "Ms. Park's Studio" }),
     ev(0, '16:30', '18:00', 'Soccer practice', ['maya'], { travel: 20, loc: 'Lakeshore Fields', notes: 'Shin guards + water bottle. Rain likely — pack a jacket.' }),
     ev(0, '17:00', '17:30', 'Parent–teacher call', ['alex', 'jordan'], { loc: 'Zoom' }),
     ev(0, '18:30', '19:30', "Dinner at Nonna's", ALL, { travel: 20, loc: "Nonna's", notes: 'Bring the lemon cake.' }),
     ev(0, '20:00', '20:30', 'Bath + books', ['otto']),
 
     // Tomorrow → +6
-    allDay(1, 3, 'Wes in Montréal', ['alex'], { loc: 'Hotel William Gray' }),
+    allDay(1, 3, 'AJ in Montréal', ['alex'], { loc: 'Hotel William Gray' }),
     ev(1, '07:00', '07:45', 'Gym', ['jordan'], { loc: 'Iron Works' }),
     ev(1, '08:15', '08:40', 'School drop-off', ['jordan'], { travel: 10 }),
     ev(1, '10:30', '11:15', 'Vet — Biscuit', ['jordan'], { travel: 10, loc: 'Riverdale Animal Clinic' }),
@@ -91,7 +91,7 @@ window.DATA = (function () {
     if (d % 9 === 0) events.push(ev(d, '12:00', '13:00', 'Lunch meeting', ['alex']));
     if (d % 11 === 0) events.push(ev(d, '09:00', '10:00', 'Doctor', ['jordan']));
   }
-  events.push(allDay(12, 1, "Buzzsaw's birthday 🎂", ALL));
+  events.push(allDay(12, 1, "Chloe's birthday 🎂", ALL));
   events.push(allDay(-8, 3, 'Cottage weekend', ALL));
 
   // Extra events for the "overloaded day" demo
@@ -116,46 +116,30 @@ window.DATA = (function () {
   function chore(r, who, title, emoji, stars, done, extra) {
     return Object.assign({ id: 'c' + (++cid), r: r, who: who, title: title, emoji: emoji, stars: stars, done: !!done }, extra || {});
   }
+  // Offline fallback: kid defaults only. Live data comes from /api/chores.
   var chores = [
-    chore('morning', 'maya', 'Make bed', '🛏️', 1, true),
-    chore('morning', 'maya', 'Brush teeth', '🪥', 1, true),
-    chore('morning', 'maya', 'Pack backpack', '🎒', 1, true),
-    chore('morning', 'otto', 'Make bed', '🛏️', 1, true),
-    chore('morning', 'otto', 'Brush teeth', '🪥', 1, true),
-    chore('morning', 'otto', 'Get dressed', '👕', 1, false),
-    chore('morning', 'alex', 'School drop-off', '🚗', 0, true),
-    chore('morning', 'jordan', 'Pack lunches', '🥪', 0, true),
-    chore('morning', 'any', 'Feed Biscuit', '🐶', 1, true),
-
-    chore('after', 'maya', 'Unpack lunchbox', '🥪', 1, true),
-    chore('after', 'maya', 'Homework', '📚', 2, false),
-    chore('after', 'maya', 'Pack soccer bag', '⚽', 1, false),
-    chore('after', 'otto', 'Unpack lunchbox', '🥪', 1, true),
-    chore('after', 'otto', 'Read for 20 min', '📖', 2, false),
-    chore('after', 'otto', 'Practice piano', '🎹', 2, false),
-    chore('after', 'otto', 'Tidy the Lego', '🧱', 1, false),
-    chore('after', 'alex', 'Take out recycling', '♻️', 0, false, { overdue: true }),
-    chore('after', 'alex', 'Call the plumber', '☎️', 0, true),
-    chore('after', 'jordan', 'Fold laundry', '🧺', 0, false),
-    chore('after', 'jordan', 'Order Zoe’s gift', '🎁', 0, true),
-    chore('after', 'any', 'Water the plants', '🪴', 1, false),
-    chore('after', 'any', 'Empty dishwasher', '🍽️', 2, false),
-    chore('after', 'any', 'Walk Biscuit', '🐕', 2, true),
-
-    chore('evening', 'maya', 'Set the table', '🍴', 1, false),
-    chore('evening', 'maya', 'Lay out clothes', '👕', 1, false),
-    chore('evening', 'maya', 'Shower', '🚿', 1, false),
-    chore('evening', 'otto', 'Clear plates', '🍽️', 1, false),
-    chore('evening', 'otto', 'Bath', '🛁', 1, false),
-    chore('evening', 'otto', 'Lay out clothes', '👕', 1, false),
-    chore('evening', 'alex', 'Lock up', '🔐', 0, false),
-    chore('evening', 'jordan', 'Run dishwasher', '🫧', 0, false),
-    chore('evening', 'any', 'Wipe counters', '🧽', 1, false),
-    chore('evening', 'any', 'Garbage to curb', '🗑️', 2, false)
+    chore('morning', 'maya', 'Make bed', '🛏️', 0, false),
+    chore('morning', 'maya', 'Brush teeth', '🪥', 0, false),
+    chore('morning', 'maya', 'Pack backpack', '🎒', 0, false),
+    chore('morning', 'otto', 'Make bed', '🛏️', 0, false),
+    chore('morning', 'otto', 'Brush teeth', '🪥', 0, false),
+    chore('morning', 'otto', 'Get dressed', '👕', 0, false),
+    chore('after', 'maya', 'Unpack lunchbox', '🥪', 0, false),
+    chore('after', 'maya', 'Homework', '📚', 0, false),
+    chore('after', 'maya', 'Pack soccer bag', '⚽', 0, false),
+    chore('after', 'otto', 'Unpack lunchbox', '🥪', 0, false),
+    chore('after', 'otto', 'Read for 20 min', '📖', 0, false),
+    chore('after', 'otto', 'Practice piano', '🎹', 0, false),
+    chore('after', 'otto', 'Tidy the Lego', '🧱', 0, false),
+    chore('evening', 'maya', 'Set the table', '🍴', 0, false),
+    chore('evening', 'maya', 'Lay out clothes', '👕', 0, false),
+    chore('evening', 'maya', 'Shower', '🚿', 0, false),
+    chore('evening', 'otto', 'Clear plates', '🍽️', 0, false),
+    chore('evening', 'otto', 'Bath', '🛁', 0, false),
+    chore('evening', 'otto', 'Lay out clothes', '👕', 0, false)
   ];
-  var stars = { maya: 42, otto: 57 };
-  // Mon..Sun, 1 = all chores done, 0 = missed, null = future
-  var week = { maya: [1, 1, 0, 1, 1, 0, 1], otto: [1, 0, 1, 1, 1, 1, 0] };
+  var stars = {};
+  var week = {};
 
   // ---------------------------------------------------------------- shopping
   var stores = [{ id: 'grocer', name: 'FreshCo' }, { id: 'costco', name: 'Costco' }];
@@ -168,32 +152,7 @@ window.DATA = (function () {
   function g(name, cat, qty, store, done, note) {
     return { id: 'g' + (++gid), name: name, cat: cat, qty: qty, store: store, done: !!done, note: note || '' };
   }
-  var groceries = [
-    g('Bananas', 'Produce', 1, 'grocer', false, 'Bunch, not too ripe'),
-    g('Baby spinach', 'Produce', 1, 'grocer'),
-    g('Avocados', 'Produce', 3, 'grocer'),
-    g('Honeycrisp apples', 'Produce', 6, 'grocer'),
-    g('Sourdough loaf', 'Bakery', 1, 'grocer'),
-    g('Bagels', 'Bakery', 2, 'costco', false, 'Everything'),
-    g('Chicken thighs', 'Meat & Fish', 1, 'grocer', false, 'Boneless'),
-    g('Salmon fillets', 'Meat & Fish', 2, 'grocer'),
-    g('Milk 2%', 'Dairy & Eggs', 2, 'costco'),
-    g('Eggs', 'Dairy & Eggs', 1, 'costco', false, '2 dozen'),
-    g('Greek yogurt', 'Dairy & Eggs', 1, 'grocer'),
-    g('Aged cheddar', 'Dairy & Eggs', 1, 'grocer'),
-    g('Rigatoni', 'Pantry', 2, 'grocer'),
-    g('Olive oil', 'Pantry', 1, 'costco'),
-    g('Coffee beans', 'Pantry', 1, 'grocer', false, 'Dark roast'),
-    g('Frozen peas', 'Frozen', 1, 'grocer'),
-    g('Waffles', 'Frozen', 1, 'grocer'),
-    g('Goldfish crackers', 'Snacks', 1, 'costco'),
-    g('Granola bars', 'Snacks', 1, 'grocer'),
-    g('Paper towels', 'Household', 1, 'costco'),
-    g('Dish soap', 'Household', 1, 'grocer'),
-    g('Lemons', 'Produce', 2, 'grocer', true),
-    g('Butter', 'Dairy & Eggs', 1, 'grocer', true),
-    g('Tortillas', 'Bakery', 1, 'grocer', true)
-  ];
+  var groceries = [];
   var catalog = [
     ['Apples', 'Produce'], ['Avocados', 'Produce'], ['Bananas', 'Produce'], ['Baby spinach', 'Produce'], ['Blueberries', 'Produce'],
     ['Broccoli', 'Produce'], ['Carrots', 'Produce'], ['Cucumber', 'Produce'], ['Garlic', 'Produce'], ['Grapes', 'Produce'],
@@ -234,8 +193,8 @@ window.DATA = (function () {
     { id: 'e-porch', room: 'entry', type: 'light', name: 'Porch', on: true, level: 100 },
     { id: 'g-door', room: 'entry', type: 'garage', name: 'Garage', state: 'closed' },
     { id: 'g-side', room: 'entry', type: 'lock', name: 'Side Door', locked: true },
-    { id: 'u-maya', room: 'upstairs', type: 'light', name: "Buzzsaw's Lamp", on: true, level: 30 },
-    { id: 'u-otto', room: 'upstairs', type: 'light', name: "Skidmark's Nightlight", on: false, level: 15 },
+    { id: 'u-maya', room: 'upstairs', type: 'light', name: "Chloe's Lamp", on: true, level: 30 },
+    { id: 'u-otto', room: 'upstairs', type: 'light', name: "Hudson's Nightlight", on: false, level: 15 },
     { id: 'u-hall', room: 'upstairs', type: 'light', name: 'Hallway', on: false, level: 60 },
     { id: 'u-bath', room: 'upstairs', type: 'light', name: 'Bathroom', on: false, level: 100 },
     { id: 'y-string', room: 'yard', type: 'light', name: 'String Lights', on: false, level: 100, flaky: true },
@@ -257,10 +216,10 @@ window.DATA = (function () {
     { id: 'night', name: 'Goodnight', icon: 'moon', set: { 'k-pend': 0, 'k-under': 10, 'k-island': 0, 'l-lamp': 0, 'l-ceil': 0, 'l-fire': 0, 'u-hall': 10, 'u-otto': 15, 'e-porch': 0 } }
   ];
 
-  // ---------------------------------------------------------------- weather (index = hour of day)
+  // ---------------------------------------------------------------- weather (index = hour of day) — °F offline fallback until /api/weather loads
   var weather = {
-    hi: 17, lo: 8, feels: -2, humidity: 71, wind: 18,
-    t: [9, 9, 8, 8, 8, 8, 9, 10, 11, 12, 13, 15, 16, 17, 16, 15, 14, 13, 12, 12, 11, 10, 10, 9],
+    hi: 62, lo: 46, feels: 44, humidity: 71, wind: 18,
+    t: [48, 48, 47, 46, 46, 47, 49, 52, 55, 57, 59, 60, 62, 62, 61, 59, 56, 54, 52, 51, 50, 49, 48, 48],
     c: ['moon', 'moon', 'moon', 'moon', 'moon', 'moon', 'partly', 'partly', 'sun', 'sun', 'sun', 'partly', 'partly', 'cloud', 'cloud', 'cloud', 'rain', 'rain', 'rain', 'rain', 'cloud', 'cloud', 'moon', 'moon'],
     p: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 10, 20, 25, 40, 80, 90, 70, 55, 20, 10, 0, 0]
   };

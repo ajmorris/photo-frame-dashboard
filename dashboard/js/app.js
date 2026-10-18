@@ -1,8 +1,11 @@
-// Core shell: router, demo clock, idle/ambient, toasts, sheets, helpers.
+// Core shell: router, demo clock, idle, toasts, sheets, helpers.
 (function () {
   'use strict';
   var D = window.DATA;
   var App = window.App = { state: D, views: {}, current: null, mode: 'day', calMode: 'normal' };
+  // Match --stage-w / --stage-h in css/tokens.css (Pastigio FRAME156 = 1920×1080).
+  App.STAGE_W = 1920;
+  App.STAGE_H = 1080;
   var $ = App.$ = function (s, r) { return (r || document).querySelector(s); };
   App.$$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
@@ -24,7 +27,6 @@
   App.dayStart = function (d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
   App.addDays = function (d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; };
   App.sameDay = function (a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); };
-  App.isNight = function () { var h = App.now().getHours(); return h >= 22 || h < 6; };
 
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -142,11 +144,11 @@
       var soccer = App.timedOn(App.now()).filter(function (e) { return /soccer/i.test(e.title) && e.start > App.now(); })[0];
       advice = soccer ? 'Pack a rain jacket for soccer' : 'Grab a rain jacket';
     } else {
-      summary = W.t[h] < 12 ? 'Clear and cool' : 'Dry all day';
-      advice = W.t[h] < 12 ? 'Jacket weather' : 'Light layers';
+      summary = W.t[h] < 55 ? 'Clear and cool' : 'Dry all day';
+      advice = W.t[h] < 55 ? 'Jacket weather' : 'Light layers';
     }
     var labels = { sun: 'Sunny', moon: 'Clear', partly: 'Partly cloudy', cloud: 'Overcast', rain: 'Rain' };
-    return { temp: W.t[h], cond: W.c[h], label: labels[W.c[h]], hi: W.hi, lo: W.lo, summary: summary, advice: advice, hour: h };
+    return { temp: W.t[h], cond: W.c[h], label: labels[W.c[h]] || '—', hi: W.hi, lo: W.lo, summary: summary, advice: advice, hour: h };
   };
   App.hourly = function (count) {
     var W = D.weather, h = App.now().getHours(), out = [];
@@ -257,7 +259,7 @@
 
   // Stage-local coordinates for an element's center (stage may be scaled on desktop)
   App.centerOf = function (el) {
-    var stage = $('#stage').getBoundingClientRect(), r = el.getBoundingClientRect(), k = stage.width / 1280;
+    var stage = $('#stage').getBoundingClientRect(), r = el.getBoundingClientRect(), k = stage.width / App.STAGE_W;
     return { x: (r.left + r.width / 2 - stage.left) / k, y: (r.top + r.height / 2 - stage.top) / k };
   };
 
@@ -281,7 +283,7 @@
     el.addEventListener('pointercancel', cancel);
   };
 
-  // ------------------------------------------------------------ modes: day / ambient / night
+  // ------------------------------------------------------------ modes
   App.setMode = function (m) {
     var stage = $('#stage');
     App.mode = m;
@@ -290,25 +292,26 @@
   };
 
   // ------------------------------------------------------------ idle
-  App.idle = { home: 60, ambient: 120 };
+  App.idle = { home: 30 };
   var idleSec = 0;
   function onIdleTick() {
     idleSec++;
     var blocked = $('#takeover').classList.contains('is-open');
-    if (App.mode === 'nightdash' && idleSec >= 20) { App.setMode('night'); return; }
     if (App.mode !== 'day' || blocked) return;
     if (idleSec === App.idle.home && App.current !== 'home') { App.closeSheet(); App.go('home'); }
-    if (idleSec >= App.idle.ambient) {
-      App.closeSheet();
-      App.go('home');
-      App.setMode(App.isNight() ? 'night' : 'ambient');
-    }
   }
   App.resetIdle = function () { idleSec = 0; };
 
-  // ------------------------------------------------------------ stage scaling (desktop preview only)
+  // ------------------------------------------------------------ stage scaling
+  // Contain by default. On landscape viewports, if contain would leave side bars,
+  // switch to cover so the frame fills edge-to-edge (small top/bottom crop ok).
   function fit() {
-    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
+    var w = App.STAGE_W, h = App.STAGE_H;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var contain = Math.min(vw / w, vh / h);
+    var cover = Math.max(vw / w, vh / h);
+    var sideBars = vw - w * contain;
+    var s = (vw >= vh && sideBars > 24) ? cover : contain;
     $('#stage').style.transform = Math.abs(s - 1) < 0.01 ? '' : 'scale(' + s + ')';
   }
 
@@ -327,7 +330,6 @@
 
   // ------------------------------------------------------------ boot
   App.start = function () {
-    App.setTime(15, 18); // demo default: a busy weekday afternoon
     fit();
     window.addEventListener('resize', fit);
     // Switch tabs the instant a finger lands (pointerdown), not on release. Keyboard "clicks"
@@ -347,7 +349,6 @@
     setInterval(tick, 1000);
     App.emit('ready');
     refreshStale(1500);
-    setTimeout(function () { App.toast('Tip: press and hold the <b>clock</b> in the sidebar for demo controls', { ms: 6000, icon: 'bolt' }); }, 1200);
   };
   document.addEventListener('DOMContentLoaded', function () { App.start(); });
 })();
