@@ -49,14 +49,6 @@
     App.emit('data');
   }
 
-  function applyPhotos(body) {
-    if (!body || !body.configured || !body.photos || !body.photos.length) return;
-    D.photos.length = 0;
-    body.photos.forEach(function (p) { D.photos.push(p); });
-    App.emit('data');
-    App.rerender();
-  }
-
   function applyChores(body) {
     if (!body || !body.chores) return;
     D.chores.length = 0;
@@ -84,7 +76,6 @@
   function tick() {
     get('/api/presence', applyPresence);
     get('/api/weather', applyWeather);
-    get('/api/photos', applyPhotos);
     get('/api/chores', applyChores);
     get('/api/shopping', applyShopping);
   }
