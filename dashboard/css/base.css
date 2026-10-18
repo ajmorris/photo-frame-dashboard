@@ -85,7 +85,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ---------------------------------------------------------------- components */
 .card { background: var(--card); border-radius: var(--r); padding: 18px 20px; position: relative; }
 button.card { display: block; width: 100%; }
-button.card:active, .h-hero:active, .h-photo:active { transform: scale(.985); }
+button.card:active, .h-hero:active { transform: scale(.985); }
 
 .avatar {
   flex: none;
@@ -294,9 +294,6 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(.985); }
 }
 .demo-grid button:active, .demo-grid button.is-on { background: #fff; color: var(--ink); }
 .demo-note { font-size: 16px; color: rgba(255, 255, 255, .6); }
-
-/* Night lock (dim red clock) still exists; tapping it opens the normal dashboard
-   (nightdash) without inverting colors. Idle returns to the lock screen. */
 
 /* ---------------------------------------------------------------- diagnostics overlay (?diag) */
 .diag {

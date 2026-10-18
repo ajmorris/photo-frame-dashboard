@@ -1,4 +1,4 @@
-// Core shell: router, demo clock, idle/ambient, toasts, sheets, helpers.
+// Core shell: router, demo clock, idle, toasts, sheets, helpers.
 (function () {
   'use strict';
   var D = window.DATA;
@@ -27,7 +27,6 @@
   App.dayStart = function (d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
   App.addDays = function (d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; };
   App.sameDay = function (a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); };
-  App.isNight = function () { var h = App.now().getHours(); return h >= 21 || h < 6; };
 
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -284,7 +283,7 @@
     el.addEventListener('pointercancel', cancel);
   };
 
-  // ------------------------------------------------------------ modes: day / ambient / night
+  // ------------------------------------------------------------ modes
   App.setMode = function (m) {
     var stage = $('#stage');
     App.mode = m;
@@ -293,19 +292,13 @@
   };
 
   // ------------------------------------------------------------ idle
-  App.idle = { home: 30, ambient: 60 };
+  App.idle = { home: 30 };
   var idleSec = 0;
   function onIdleTick() {
     idleSec++;
     var blocked = $('#takeover').classList.contains('is-open');
-    if (App.mode === 'nightdash' && idleSec >= 20) { App.setMode('night'); return; }
     if (App.mode !== 'day' || blocked) return;
     if (idleSec === App.idle.home && App.current !== 'home') { App.closeSheet(); App.go('home'); }
-    if (idleSec >= App.idle.ambient) {
-      App.closeSheet();
-      App.go('home');
-      App.setMode(App.isNight() ? 'night' : 'ambient');
-    }
   }
   App.resetIdle = function () { idleSec = 0; };
 

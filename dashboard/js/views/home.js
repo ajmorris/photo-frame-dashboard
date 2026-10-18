@@ -144,11 +144,6 @@
     el.querySelector('.h-shop').innerHTML = shopping();
   }
 
-  function photoCaption(s) {
-    var m = App.photoMeta(s.photos[0]);
-    V.el.querySelector('.h-photo-cap').innerHTML = '<b>' + (m.onThisDay ? 'On this day · ' : '') + m.kicker + '</b><span>' + App.esc(m.place || '') + '</span>';
-  }
-
   App.register('home', {
     show: function (el) {
       V.el = el;
@@ -159,7 +154,6 @@
           '<div class="h-presence"></div>' +
           '<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes" ></div></div>' +
           '<div class="h-side">' +
-          '  <button class="h-photo" data-go="photos"><div class="h-photo-stage"></div><div class="h-photo-cap"></div></button>' +
           '  <button class="h-chores card" data-go="tasks"></button>' +
           '  <button class="h-shop card" data-go="shopping"></button>' +
           '</div></div>';
@@ -169,13 +163,9 @@
           var g = e.target.closest('[data-go]');
           if (g) App.go(g.dataset.go);
         });
-        V.slides = new App.Slideshow(el.querySelector('.h-photo-stage'), { layout: 'cover', captions: false, interval: 12000, onChange: photoCaption });
       }
       paint();
-      V.slides.start();
-    },
-    resume: function () { V.slides.start(); },
-    hide: function () { if (V.slides) V.slides.stop(); }
+    }
   });
   // Every minute: just the clock and next-up countdown (cheap, even while hidden). Weather on the hour.
   App.on('minute', function (n) {
