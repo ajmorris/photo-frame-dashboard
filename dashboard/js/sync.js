@@ -7,7 +7,8 @@
   var LUNCH_POLL = 30 * 60 * 1000;
   var CLASSROOM_KID = 'maya';
   var CLASSROOM_KEY = 'homehq.classroom.' + CLASSROOM_KID + '.v2';
-  var LUNCH_KEY = 'homehq.lunch.v1';
+  var LUNCH_KIDS = ['maya', 'otto'];
+  var LUNCH_KEY = 'homehq.lunch.v2';
 
   function get(path, cb) {
     var xhr = new XMLHttpRequest();
@@ -129,30 +130,48 @@
     getAny('/api/classroom?kid=' + CLASSROOM_KID, applyClassroom);
   }
 
-  function applyLunch(status, body) {
-    if (status !== 200 || !body || !Array.isArray(body.days)) return;
-    D.lunch = {
-      school: body.school || 'Herbison Woods',
-      menuType: body.menuType || null,
-      source: body.source || 'nutrislice',
-      fetchedAt: body.fetchedAt || null,
-      days: body.days,
+  function ensureLunch() {
+    if (!D.lunch || Array.isArray(D.lunch.days)) D.lunch = {};
+    return D.lunch;
+  }
+
+  function applyLunch(kid) {
+    return function (status, body) {
+      if (status !== 200 || !body || !Array.isArray(body.days)) return;
+      ensureLunch()[kid] = {
+        kid: kid,
+        school: body.school || (kid === 'otto' ? 'Scott' : 'Herbison Woods'),
+        menuType: body.menuType || null,
+        source: body.source || 'nutrislice',
+        fetchedAt: body.fetchedAt || null,
+        days: body.days,
+      };
+      try { localStorage.setItem(LUNCH_KEY, JSON.stringify(D.lunch)); } catch (e) {}
+      App.emit('data');
     };
-    try { localStorage.setItem(LUNCH_KEY, JSON.stringify(D.lunch)); } catch (e) {}
-    App.emit('data');
   }
 
   function loadLunchCache() {
     try {
       var cached = JSON.parse(localStorage.getItem(LUNCH_KEY) || 'null');
-      if (!cached || !Array.isArray(cached.days)) return;
-      D.lunch = cached;
+      if (!cached || typeof cached !== 'object') return;
+      // Migrate flat v1 shape → keyed by kid
+      if (Array.isArray(cached.days)) {
+        ensureLunch().maya = cached;
+        App.emit('data');
+        return;
+      }
+      LUNCH_KIDS.forEach(function (kid) {
+        if (cached[kid] && Array.isArray(cached[kid].days)) ensureLunch()[kid] = cached[kid];
+      });
       App.emit('data');
     } catch (e) {}
   }
 
   function tickLunch() {
-    getAny('/api/lunch', applyLunch);
+    LUNCH_KIDS.forEach(function (kid) {
+      getAny('/api/lunch?kid=' + kid, applyLunch(kid));
+    });
   }
 
   App.pushShopping = function () {

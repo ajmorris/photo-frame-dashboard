@@ -3,7 +3,7 @@
   'use strict';
   var D = window.DATA;
   var KID = 'maya';
-  var V = { el: null, byId: {}, lunchByDate: {}, bound: false };
+  var V = { el: null, byId: {}, lunchByDate: {}, pending: {}, bound: false };
   var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   var DOW_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -182,8 +182,16 @@
       String(d.getDate()).padStart(2, '0');
   }
 
+  function lunchData() {
+    var lunch = D.lunch || {};
+    if (lunch.maya) return lunch.maya;
+    // Legacy flat shape from older localStorage
+    if (Array.isArray(lunch.days)) return lunch;
+    return { school: 'Herbison Woods', days: [] };
+  }
+
   function lunchDays() {
-    var lunch = D.lunch || { days: [] };
+    var lunch = lunchData();
     var byKey = {};
     (lunch.days || []).forEach(function (day) {
       if (!day || !day.date) return;
@@ -260,7 +268,7 @@
 
   function lunchPanel() {
     V.lunchByDate = {};
-    var lunch = D.lunch || {};
+    var lunch = lunchData();
     var byKey = lunchDays();
     var now = App.now();
     var hero = heroLunchDay(byKey, now);
@@ -315,6 +323,63 @@
       '</div>';
   }
 
+  function todoList() {
+    var r = App.currentRoutine();
+    return (D.chores || []).filter(function (c) {
+      return c.who === KID && c.r === r.id;
+    }).sort(function (a, b) {
+      return (a.done - b.done) || ((b.overdue ? 1 : 0) - (a.overdue ? 1 : 0));
+    });
+  }
+
+  function todoPanel() {
+    var r = App.currentRoutine();
+    var list = todoList();
+    var done = list.filter(function (c) { return c.done; }).length;
+    var rows = list.length
+      ? list.map(function (c) {
+        var pend = V.pending[c.id];
+        return '<button type="button" class="ch' + (c.done ? ' is-done' : '') + (pend ? ' is-checking' : '') +
+          (c.overdue && !c.done ? ' is-overdue' : '') + '" data-ch="' + App.esc(c.id) + '">' +
+          '<span class="ch-emoji">' + (c.emoji || '✅') +
+          '<span class="ch-check"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span></span>' +
+          '<span class="ch-text"><b>' + App.esc(c.title) + '</b>' +
+          (c.overdue && !c.done ? '<small class="ch-late">Overdue</small>' : '') +
+          '</span></button>';
+      }).join('')
+      : '<div class="cl-none serif"><i>Nothing for ' + App.esc(r.name.toLowerCase()) + '.</i></div>';
+
+    return '<div class="cl-panel cl-todos" style="' + App.pstyle(App.person(KID)) + '">' +
+      '<div class="cl-panel-head">' +
+      '<span class="label">To-do · ' + App.esc(r.name) + '</span>' +
+      (list.length ? '<span class="cl-count num">' + done + '/' + list.length + '</span>' : '') +
+      '</div>' +
+      '<div class="cl-todo-list">' + rows + '</div></div>';
+  }
+
+  function toggleTodo(id, btn) {
+    var c = (D.chores || []).filter(function (x) { return x.id === id; })[0];
+    if (!c || V.pending[c.id]) return;
+    if (c.done) {
+      c.done = false;
+      delete c.doneBy;
+      if (App.pushChoreToggle) App.pushChoreToggle(c);
+      paint();
+      App.emit('data');
+      return;
+    }
+    V.pending[c.id] = true;
+    if (btn) btn.classList.add('is-checking');
+    setTimeout(function () {
+      delete V.pending[c.id];
+      c.done = true;
+      c.doneBy = KID;
+      if (App.pushChoreToggle) App.pushChoreToggle(c);
+      paint();
+      App.emit('data');
+    }, 350);
+  }
+
   function paint() {
     V.byId = {};
     var p = App.person(KID);
@@ -339,7 +404,7 @@
       weekCalendar(due) +
       pastDueTable(past) +
       '</div>' +
-      '<aside class="cl-side">' + lunchPanel() + '</aside>' +
+      '<aside class="cl-side">' + lunchPanel() + todoPanel() + '</aside>' +
       '</div></div>';
   }
 
@@ -347,6 +412,11 @@
     var lunch = e.target.closest('[data-lunch-date]');
     if (lunch && V.el.contains(lunch)) {
       lunchSheet(V.lunchByDate[lunch.getAttribute('data-lunch-date')]);
+      return;
+    }
+    var ch = e.target.closest('[data-ch]');
+    if (ch && V.el.contains(ch)) {
+      toggleTodo(ch.getAttribute('data-ch'), ch);
       return;
     }
     var t = e.target.closest('[data-cl-id]');

@@ -357,20 +357,36 @@ window.DATA = (function () {
       if (i > from + 21) return from;
     }
   }
+  function lunchDaysMock(school, entreesByDay) {
+    return {
+      school: school,
+      menuType: 'lunch-3-6',
+      source: 'mock',
+      fetchedAt: new Date().toISOString(),
+      days: entreesByDay.map(function (entrees, i) {
+        return { date: lunchDate(weekdayOffset(0, i)), entrees: entrees };
+      }),
+    };
+  }
   var lunchMock = {
-    school: 'Herbison Woods',
-    menuType: 'lunch-3-6',
-    source: 'mock',
-    fetchedAt: new Date().toISOString(),
-    days: [
-      { date: lunchDate(weekdayOffset(0, 0)), entrees: ['Mini Cheese Ravioli with Turkey Bolognese Sauce', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
-      { date: lunchDate(weekdayOffset(0, 1)), entrees: ['Walking Beef Taco', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
-      { date: lunchDate(weekdayOffset(0, 2)), entrees: ['Mini Turkey Corn Dogs', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
-      { date: lunchDate(weekdayOffset(0, 3)), entrees: ['Pickle Pizza', 'Classic Cheese Pizza', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
-      { date: lunchDate(weekdayOffset(0, 4)), entrees: ['Chicken Nuggets', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
-      { date: lunchDate(weekdayOffset(0, 5)), entrees: ['Cheeseburger', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
-      { date: lunchDate(weekdayOffset(0, 6)), entrees: ['Pasta Bowl', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] }
-    ]
+    maya: lunchDaysMock('Herbison Woods', [
+      ['Mini Cheese Ravioli with Turkey Bolognese Sauce', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Walking Beef Taco', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Mini Turkey Corn Dogs', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Pickle Pizza', 'Classic Cheese Pizza', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Chicken Nuggets', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Cheeseburger', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Pasta Bowl', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+    ]),
+    otto: lunchDaysMock('Scott', [
+      ['Crispy Chicken Patty Sandwich', 'Muffin, Goldfish & Yogurt Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Walking Beef Taco', 'Muffin, Goldfish & Yogurt Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Whole Grain French Toast Sticks', 'Muffin, Goldfish & Yogurt Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Sweet & Sour Chicken', 'Muffin, Goldfish & Yogurt Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Veggie Pizza', 'Classic Cheese Pizza', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Chicken Nuggets', 'Muffin, Goldfish & Yogurt Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+      ['Cheeseburger', 'Muffin, Goldfish & Yogurt Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'],
+    ]),
   };
 
   return {

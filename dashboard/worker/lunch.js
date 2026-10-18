@@ -1,15 +1,25 @@
-// Herbison Woods lunch via Nutrislice public week JSON (no auth).
+// School lunch via Nutrislice public week JSON (no auth).
 import { bad, json, todayKey } from './util.js';
 
 const DISTRICT = 'dewittschools';
-const SCHOOL = 'herbison-woods';
-const MENU_TYPE = 'lunch-3-6';
-const SCHOOL_LABEL = 'Herbison Woods';
 const TTL = 21600; // 6 hours
+
+/** @type {Record<string, { slug: string, label: string, menuType: string }>} */
+const BY_KID = {
+  maya: {
+    slug: 'herbison-woods',
+    label: 'Herbison Woods',
+    menuType: 'lunch-3-6',
+  },
+  otto: {
+    slug: 'scott',
+    label: 'Scott',
+    menuType: 'lunch-3-6',
+  },
+};
 
 /** Sunday of the week containing `date` (dashboard TZ civil calendar). */
 function weekAnchor(date, timeZone) {
-  // Use dashboard TZ civil date, then back to Sunday of that week.
   const key = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',
@@ -51,9 +61,9 @@ function entreesFromDay(day) {
   return out;
 }
 
-async function fetchWeek(anchor) {
+async function fetchWeek(school, menuType, anchor) {
   const url = 'https://' + DISTRICT + '.api.nutrislice.com/menu/api/weeks/school/'
-    + SCHOOL + '/menu-type/' + MENU_TYPE + '/'
+    + school + '/menu-type/' + menuType + '/'
     + anchor.y + '/' + anchor.m + '/' + anchor.d + '/?format=json';
   const res = await fetch(url, {
     headers: { accept: 'application/json', 'user-agent': 'home-dashboard/1.0' },
@@ -62,14 +72,14 @@ async function fetchWeek(anchor) {
   return res.json();
 }
 
-export async function loadLunch(env, now = new Date()) {
+export async function loadLunch(env, schoolCfg, now = new Date()) {
   const tz = env.DASHBOARD_TZ || 'America/Detroit';
   const thisWeek = weekAnchor(now, tz);
   const nextWeek = shiftLocalDays(thisWeek, 7);
 
   const [a, b] = await Promise.all([
-    fetchWeek(thisWeek),
-    fetchWeek(nextWeek),
+    fetchWeek(schoolCfg.slug, schoolCfg.menuType, thisWeek),
+    fetchWeek(schoolCfg.slug, schoolCfg.menuType, nextWeek),
   ]);
 
   const byDate = new Map();
@@ -86,31 +96,46 @@ export async function loadLunch(env, now = new Date()) {
   const days = Array.from(byDate.values()).sort((x, y) => x.date.localeCompare(y.date));
 
   return {
-    school: SCHOOL_LABEL,
-    menuType: MENU_TYPE,
+    kid: schoolCfg.kid,
+    school: schoolCfg.label,
+    schoolSlug: schoolCfg.slug,
+    menuType: schoolCfg.menuType,
     source: 'nutrislice',
-    menuUrl: 'https://dewittschools.nutrislice.com/menu/herbison-woods/lunch-3-6',
+    menuUrl: 'https://dewittschools.nutrislice.com/menu/' + schoolCfg.slug + '/' + schoolCfg.menuType,
     fetchedAt: now.toISOString(),
     today: todayKey(env, now),
     days,
   };
 }
 
+function resolveKid(request) {
+  const url = new URL(request.url);
+  const kid = (url.searchParams.get('kid') || 'maya').toLowerCase();
+  const cfg = BY_KID[kid];
+  if (!cfg) return null;
+  return { kid, ...cfg };
+}
+
 export async function handleLunch(request, env, ctx) {
   if (request.method !== 'GET') return bad('GET only', 405);
 
+  const schoolCfg = resolveKid(request);
+  if (!schoolCfg) return bad('Unknown kid (use maya or otto)', 400);
+
   const cache = caches.default;
-  const key = new Request(new URL(request.url).origin + '/api/lunch');
+  const cacheUrl = new URL(request.url).origin + '/api/lunch?kid=' + schoolCfg.kid;
+  const key = new Request(cacheUrl);
   const hit = await cache.match(key);
   if (hit) return hit;
 
   let body;
   let status = 200;
   try {
-    body = await loadLunch(env);
+    body = await loadLunch(env, schoolCfg);
   } catch (err) {
     body = {
-      school: SCHOOL_LABEL,
+      kid: schoolCfg.kid,
+      school: schoolCfg.label,
       error: String(err.message || err),
       days: [],
       fetchedAt: new Date().toISOString(),
