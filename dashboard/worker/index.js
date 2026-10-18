@@ -1,5 +1,7 @@
 import { loadCalendar } from './calendar.js';
+import { handleClassroom } from './classroom.js';
 import { handleChores, handleShopping } from './lists.js';
+import { handleLunch } from './lunch.js';
 import { handleMcp } from './mcp.js';
 import { handlePhotos } from './photos.js';
 import { handlePresence } from './presence.js';
@@ -42,6 +44,8 @@ export default {
 
     try {
       if (path === '/api/calendar') return await handleCalendar(request, env, ctx);
+      if (path === '/api/classroom') return await handleClassroom(request, env, ctx);
+      if (path === '/api/lunch') return await handleLunch(request, env, ctx);
       if (path === '/api/weather') return await handleWeather(request, env, ctx);
       if (path === '/api/presence') return await handlePresence(request, env);
       if (path === '/api/photos') return await handlePhotos(request, env, ctx);

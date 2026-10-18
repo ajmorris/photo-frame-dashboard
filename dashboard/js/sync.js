@@ -3,6 +3,11 @@
   'use strict';
   var D = window.DATA;
   var POLL = 60 * 1000;
+  var CLASSROOM_POLL = 5 * 60 * 1000;
+  var LUNCH_POLL = 30 * 60 * 1000;
+  var CLASSROOM_KID = 'maya';
+  var CLASSROOM_KEY = 'homehq.classroom.' + CLASSROOM_KID + '.v2';
+  var LUNCH_KEY = 'homehq.lunch.v1';
 
   function get(path, cb) {
     var xhr = new XMLHttpRequest();
@@ -11,6 +16,16 @@
       if (xhr.status !== 200) return;
       try { cb(JSON.parse(xhr.responseText)); } catch (e) {}
     };
+    xhr.send();
+  }
+
+  function getAny(path, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', path);
+    xhr.onload = function () {
+      try { cb(xhr.status, JSON.parse(xhr.responseText)); } catch (e) {}
+    };
+    xhr.onerror = function () {};
     xhr.send();
   }
 
@@ -64,6 +79,82 @@
     App.emit('data');
   }
 
+  function ensureClassroom() {
+    if (!D.classroom) D.classroom = {};
+    if (!D.classroom[CLASSROOM_KID]) {
+      D.classroom[CLASSROOM_KID] = {
+        configured: false,
+        pastDue: [],
+        due: [],
+        truncated: { pastDue: 0, due: 0 },
+      };
+    }
+    return D.classroom[CLASSROOM_KID];
+  }
+
+  function applyClassroom(status, body) {
+    if (!body || body.kid !== CLASSROOM_KID) return;
+    var cur = ensureClassroom();
+    if (body.configured === false) {
+      cur.configured = false;
+      App.emit('data');
+      return;
+    }
+    if (status !== 200) return;
+    if (!Array.isArray(body.pastDue) || !Array.isArray(body.due)) return;
+    cur.configured = true;
+    cur.fetchedAt = body.fetchedAt || null;
+    cur.pastDue = body.pastDue;
+    cur.due = body.due;
+    cur.truncated = body.truncated || { pastDue: 0, due: 0 };
+    try { localStorage.setItem(CLASSROOM_KEY, JSON.stringify(cur)); } catch (e) {}
+    App.emit('data');
+  }
+
+  function loadClassroomCache() {
+    try {
+      var cached = JSON.parse(localStorage.getItem(CLASSROOM_KEY) || 'null');
+      if (!cached || !Array.isArray(cached.pastDue)) return;
+      var cur = ensureClassroom();
+      cur.configured = cached.configured !== false;
+      cur.fetchedAt = cached.fetchedAt || null;
+      cur.pastDue = cached.pastDue;
+      cur.due = cached.due || [];
+      cur.truncated = cached.truncated || { pastDue: 0, due: 0 };
+      App.emit('data');
+    } catch (e) {}
+  }
+
+  function tickClassroom() {
+    getAny('/api/classroom?kid=' + CLASSROOM_KID, applyClassroom);
+  }
+
+  function applyLunch(status, body) {
+    if (status !== 200 || !body || !Array.isArray(body.days)) return;
+    D.lunch = {
+      school: body.school || 'Herbison Woods',
+      menuType: body.menuType || null,
+      source: body.source || 'nutrislice',
+      fetchedAt: body.fetchedAt || null,
+      days: body.days,
+    };
+    try { localStorage.setItem(LUNCH_KEY, JSON.stringify(D.lunch)); } catch (e) {}
+    App.emit('data');
+  }
+
+  function loadLunchCache() {
+    try {
+      var cached = JSON.parse(localStorage.getItem(LUNCH_KEY) || 'null');
+      if (!cached || !Array.isArray(cached.days)) return;
+      D.lunch = cached;
+      App.emit('data');
+    } catch (e) {}
+  }
+
+  function tickLunch() {
+    getAny('/api/lunch', applyLunch);
+  }
+
   App.pushShopping = function () {
     post('/api/shopping', { action: 'replace', shopping: D.groceries });
   };
@@ -83,5 +174,11 @@
   App.on('ready', function () {
     tick();
     setInterval(tick, POLL);
+    loadClassroomCache();
+    tickClassroom();
+    setInterval(tickClassroom, CLASSROOM_POLL);
+    loadLunchCache();
+    tickLunch();
+    setInterval(tickLunch, LUNCH_POLL);
   });
 })();

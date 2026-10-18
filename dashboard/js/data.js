@@ -296,6 +296,83 @@ window.DATA = (function () {
     }
   ];
 
+  // ---------------------------------------------------------------- classroom (Chloe / maya mock)
+  function dueAt(d, hm) {
+    var p = (hm || '23:59').split(':');
+    var x = new Date(base);
+    x.setDate(x.getDate() + d);
+    x.setHours(+p[0], +p[1], 0, 0);
+    return x.toISOString();
+  }
+  function daysLate(d) { return d < 0 ? -d : null; }
+  // Enough past-due rows to exercise the +N more cap (show 6, hide 1).
+  var classroomMaya = {
+    configured: true,
+    fetchedAt: new Date().toISOString(),
+    pastDue: [
+      { id: 'm1', title: 'Reading response · Ch. 4', course: 'Homeroom', due: dueAt(-4, '23:59'), daysLate: daysLate(-4) },
+      { id: 'm2', title: 'Math practice set 12', course: 'Math', due: dueAt(-2, '15:00'), daysLate: daysLate(-2) },
+      { id: 'm3', title: 'Science lab sheet', course: 'Science', due: dueAt(-1, '23:59'), daysLate: daysLate(-1) },
+      { id: 'm4', title: 'Spelling pretest', course: 'Homeroom', due: dueAt(-5, '23:59'), daysLate: daysLate(-5) },
+      { id: 'm5', title: 'Art sketchbook check', course: 'Art', due: dueAt(-3, '23:59'), daysLate: daysLate(-3) },
+      { id: 'm6', title: 'PE fitness log', course: 'PE', due: dueAt(-6, '23:59'), daysLate: daysLate(-6) },
+      { id: 'm7', title: 'Library book return slip', course: 'Homeroom', due: dueAt(-7, '23:59'), daysLate: daysLate(-7) }
+    ].sort(function (a, b) { return new Date(a.due) - new Date(b.due); }),
+    due: [
+      { id: 'm8', title: 'Fraction worksheet', course: 'Math', due: dueAt(0, '15:00'), daysLate: null },
+      { id: 'm9', title: 'Social studies map', course: 'Social Studies', due: dueAt(1, '23:59'), daysLate: null },
+      { id: 'm10', title: 'Book report draft', course: 'Homeroom', due: dueAt(2, '23:59'), daysLate: null },
+      { id: 'm11', title: 'Science vocabulary quiz', course: 'Science', due: dueAt(3, '15:00'), daysLate: null },
+      { id: 'm12', title: 'Music practice video', course: 'Music', due: dueAt(5, '23:59'), daysLate: null },
+      { id: 'm13', title: 'Math unit review', course: 'Math', due: dueAt(7, '15:00'), daysLate: null },
+      { id: 'm14', title: 'Writing journal week 6', course: 'Homeroom', due: dueAt(9, '23:59'), daysLate: null },
+      { id: 'm15', title: 'Science fair question', course: 'Science', due: dueAt(12, '23:59'), daysLate: null },
+      { id: 'm16', title: 'Art clay project photo', course: 'Art', due: dueAt(13, '23:59'), daysLate: null }
+    ].sort(function (a, b) { return new Date(a.due) - new Date(b.due); }),
+    truncated: { pastDue: 1, due: 1 }
+  };
+
+  // ---------------------------------------------------------------- lunch (Herbison Woods mock)
+  function lunchDate(d) {
+    var x = new Date(base);
+    x.setDate(x.getDate() + d);
+    var y = x.getFullYear();
+    var m = String(x.getMonth() + 1).padStart(2, '0');
+    var day = String(x.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+  function weekdayOffset(from, n) {
+    // nth weekday (Mon–Fri) at/after `from` day offset from base
+    var i = from;
+    var left = n;
+    while (true) {
+      var x = new Date(base);
+      x.setDate(x.getDate() + i);
+      var dow = x.getDay();
+      if (dow !== 0 && dow !== 6) {
+        if (left === 0) return i;
+        left--;
+      }
+      i++;
+      if (i > from + 21) return from;
+    }
+  }
+  var lunchMock = {
+    school: 'Herbison Woods',
+    menuType: 'lunch-3-6',
+    source: 'mock',
+    fetchedAt: new Date().toISOString(),
+    days: [
+      { date: lunchDate(weekdayOffset(0, 0)), entrees: ['Mini Cheese Ravioli with Turkey Bolognese Sauce', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
+      { date: lunchDate(weekdayOffset(0, 1)), entrees: ['Walking Beef Taco', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
+      { date: lunchDate(weekdayOffset(0, 2)), entrees: ['Mini Turkey Corn Dogs', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
+      { date: lunchDate(weekdayOffset(0, 3)), entrees: ['Pickle Pizza', 'Classic Cheese Pizza', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
+      { date: lunchDate(weekdayOffset(0, 4)), entrees: ['Chicken Nuggets', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
+      { date: lunchDate(weekdayOffset(0, 5)), entrees: ['Cheeseburger', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] },
+      { date: lunchDate(weekdayOffset(0, 6)), entrees: ['Pasta Bowl', 'Build Your Own Pizza Fun Lunch', 'EZ Jammer Wowbutter & Jelly Sandwich'] }
+    ]
+  };
+
   return {
     people: people, family: family, ALL: ALL,
     events: events, busyExtras: busyExtras,
@@ -303,6 +380,8 @@ window.DATA = (function () {
     stores: stores, catOrder: catOrder, groceries: groceries, catalog: catalog, usuals: usuals,
     rooms: rooms, devices: devices, climate: climate, media: media, cameras: cameras, scenes: scenes,
     weather: weather, photos: photos, agents: agents,
+    classroom: { maya: classroomMaya },
+    lunch: lunchMock,
     _gid: function () { return 'g' + (++gid); },
     _eid: function () { return 'e' + (++n); }
   };

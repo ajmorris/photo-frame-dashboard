@@ -19,6 +19,7 @@ npx wrangler secret put PRESENCE_TOKEN
 npx wrangler secret put AGENT_TOKEN
 # later:
 # npx wrangler secret put PHOTO_ALBUM
+# npx wrangler secret put CLASSROOM_MAYA   # Chloe Classroom OAuth JSON (see below)
 ```
 
 `WEATHER_LAT`, `WEATHER_LON`, and `DASHBOARD_TZ` are already set in `wrangler.jsonc` for DeWitt, Michigan.
@@ -66,6 +67,58 @@ npx wrangler secret put PHOTO_ALBUM
 ```
 
 Until then `/api/photos` returns `{ configured: false }` and the frame keeps placeholder images.
+
+## Chloe · Google Classroom (browser scrape)
+
+School Workspace domains usually block third-party Classroom API OAuth. This dashboard does **not** call the Classroom API. A small Playwright script on a computer signs into Classroom as Chloe (once), scrapes the student **Missing** and **Assigned** To-do pages, and POSTs JSON to the Worker. The frame only reads `GET /api/classroom?kid=maya`.
+
+### One-time login + scrape
+
+1. From `dashboard/`, install browsers once:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+2. Ensure `.dev.vars` has `AGENT_TOKEN` (same value as production `wrangler secret`). For production pushes:
+
+```bash
+CLASSROOM_URL=https://home-dashboard.aj-morris.workers.dev
+```
+
+3. First run opens a real browser — sign in with **Chloe’s school Google account**, then wait until Classroom loads:
+
+```bash
+npm run classroom:login
+```
+
+Session cookies are stored in `dashboard/.classroom-profile/maya/` (gitignored).
+
+4. Later refreshes (headless):
+
+```bash
+npm run classroom:scrape
+# or dry-run without posting:
+npm run classroom:scrape -- --dry-run --headed --debug
+```
+
+5. Optional: schedule every 15–30 minutes with `launchd` or cron while the Mac is on. If Google expires the session, re-run `npm run classroom:login`.
+
+### API shape
+
+- `GET /api/classroom?kid=maya` → `{ configured, pastDue, due, truncated, fetchedAt, source }`
+- `POST /api/classroom?kid=maya` with `Authorization: Bearer AGENT_TOKEN` and body `{ pastDue, due }` (or `{ items }`) stores the snapshot in KV
+
+Until the first successful scrape, `configured` is false and the Chloe page keeps mock / last-good data with **Classroom isn’t connected**.
+
+## Chloe · Herbison Woods lunch
+
+Lunch on Chloe’s page comes from Nutrislice’s public week JSON — no API key or secret. The Worker fetches this week and next week for Herbison Woods grades 3–6 (`lunch-3-6`), caches for 6 hours, and serves `GET /api/lunch`.
+
+Public menu: [Herbison Woods lunch 3–6](https://dewittschools.nutrislice.com/menu/herbison-woods/lunch-3-6)
+
+School and menu slugs are hardcoded in `dashboard/worker/lunch.js`. The frame polls `/api/lunch` about every 30 minutes and keeps a last-good copy in `localStorage`.
 
 ## Frame kiosk
 
