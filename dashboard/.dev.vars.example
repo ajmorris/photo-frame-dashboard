@@ -10,3 +10,7 @@ AGENT_TOKEN=replace-with-another-long-random-string
 
 # Optional until you have a public Shared Album link
 # PHOTO_ALBUM=https://www.icloud.com/sharedalbum/#TOKEN_OR_photos_shared_album_URL
+
+# Classroom scraper POSTs here (same write token as MCP is fine).
+# AGENT_TOKEN is already set above. Optional override URL for the scraper:
+# CLASSROOM_URL=https://home-dashboard.aj-morris.workers.dev

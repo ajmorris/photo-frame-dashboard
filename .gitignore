@@ -2,6 +2,9 @@
 /backups/
 /diagnostics/
 /log/
+# Google Classroom scraper session (cookies) + debug HTML
+/dashboard/.classroom-profile/
+/dashboard/.dev.vars
 /loader-*.txt
 /.claude/
 .DS_Store

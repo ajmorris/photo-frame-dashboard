@@ -40,11 +40,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ---------------------------------------------------------------- stage (design canvas; JS scales to viewport) */
 .stage {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
   width: var(--stage-w);
   height: var(--stage-h);
-  margin: auto;
-  transform-origin: 50% 50%;
+  /* translate centers the 1920×1080 canvas; JS appends scale() in fit() */
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
   background: var(--paper);
   overflow: hidden;
   display: grid;

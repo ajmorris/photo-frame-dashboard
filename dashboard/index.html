@@ -18,11 +18,14 @@
   <link rel="stylesheet" href="css/views/shopping.css">
   <link rel="stylesheet" href="css/views/control.css">
   <link rel="stylesheet" href="css/views/agents.css">
+  <link rel="stylesheet" href="css/views/chloe.css">
 </head>
 <body>
   <div class="stage" id="stage" data-mode="day">
     <nav class="rail" id="rail" aria-label="Sections">
       <button class="rail-item" data-go="home"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Today</span></button>
+      <button class="rail-item" data-go="chloe"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="3"/><path d="M8.5 9.5c0 0 1.2-.8 3.5-.8s3.5.8 3.5.8L19 20.5H5z"/><path d="M10 20.5v2M14 20.5v2"/><path d="M7.5 4.2c.4-1.4 1.6-2.2 3-2.2"/></svg><span>Chloe</span></button>
+      <button class="rail-item" data-go="hudson"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="3"/><path d="M8.5 10h7v6.5h-7z"/><path d="M8.5 12.5H6M15.5 12.5H18"/><path d="M8.5 16.5L7 21.5M15.5 16.5L17 21.5"/></svg><span>Hudson</span></button>
       <button class="rail-item" data-go="calendar"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Calendar</span></button>
       <button class="rail-item" data-go="tasks"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7.5 12l3 3 6-6"/></svg><span>Chores</span></button>
       <button class="rail-item" data-go="shopping"><svg class="i" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2.3 11h10.8L21 8H6.5"/><circle cx="10" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg><span>Shopping</span></button>
@@ -36,6 +39,8 @@
       <section class="view" id="view-calendar" data-view="calendar"></section>
       <section class="view" id="view-tasks" data-view="tasks"></section>
       <section class="view" id="view-shopping" data-view="shopping"></section>
+      <section class="view" id="view-chloe" data-view="chloe"></section>
+      <section class="view" id="view-hudson" data-view="hudson"></section>
       <section class="view" id="view-control" data-view="control"></section>
       <section class="view" id="view-agents" data-view="agents"></section>
       <div class="banners" id="banners"></div>
