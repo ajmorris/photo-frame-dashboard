@@ -2,6 +2,7 @@
 import './icons.js';
 import './data.js';
 import './app.js';
+import './jokes.js';
 import './system.js';
 import './views/home.js';
 import './views/calendar.js';

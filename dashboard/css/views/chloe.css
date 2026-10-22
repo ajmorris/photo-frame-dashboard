@@ -25,6 +25,7 @@
 }
 .cl-side > .cl-panel { flex: 1; min-height: 0; }
 .cl-side > .cl-lunch { flex: 1.15; }
+.cl-side > .cl-joke { flex: none; }
 .cl-side > .cl-todos { flex: 1; }
 
 .cl-todo-list {
@@ -438,4 +439,36 @@
   font-weight: 700;
   line-height: 1.25;
   overflow-wrap: anywhere;
+}
+
+/* ---- joke of the day */
+.cl-joke {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  gap: 8px;
+  padding: 14px 18px 16px;
+}
+.cl-joke:active { transform: scale(.985); }
+.cl-joke-q {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.cl-joke-hint {
+  font-size: 14px;
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.cl-joke-punch {
+  margin: 16px 0 8px;
+  font-size: 32px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -.015em;
 }

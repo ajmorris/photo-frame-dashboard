@@ -1,5 +1,5 @@
 // Home / Today: bento overview. Never scrolls.
-// Shared next-school-day lunch when menus match; one open-task list per kid.
+// Shared lunch when menus match (same day pick as Chloe/Hudson); one open-task list per kid.
 (function () {
   'use strict';
   var D = window.DATA, V = { pending: {} };
@@ -10,7 +10,6 @@
   var AGENDA_MAX = 2;
   var ASSIGN_MAX = 2;
   var EVENT_MAX = 2;
-  var LUNCH_MAX = 4;
   var TASK_MAX = 7;
 
   function ring(done, total, size) {
@@ -102,26 +101,63 @@
     return { school: kid === 'otto' ? 'Scott' : 'Herbison Woods', days: [] };
   }
 
-  function lunchEntrees(kid, day) {
-    var key = dayKey(day);
-    var days = lunchFor(kid).days || [];
-    for (var i = 0; i < days.length; i++) {
-      if (days[i] && days[i].date === key) {
-        return (days[i].entrees || []).filter(Boolean);
-      }
-    }
-    return [];
+  function lunchDaysFor(kid) {
+    var byKey = {};
+    (lunchFor(kid).days || []).forEach(function (day) {
+      if (!day || !day.date) return;
+      byKey[day.date] = {
+        date: day.date,
+        entrees: Array.isArray(day.entrees) ? day.entrees.filter(Boolean) : [],
+      };
+    });
+    return byKey;
   }
 
-  // Next weekday on or after `from` (the next school day).
-  function nextSchoolDay(from) {
+  // School weekdays on/after `from` — same lookahead as Chloe/Hudson.
+  function schoolDaysAhead(from, count) {
+    var out = [];
     var d = App.dayStart(from);
-    for (var i = 0; i < 8; i++) {
+    for (var i = 0; i < 21 && out.length < count; i++) {
       var x = App.addDays(d, i);
       var dow = x.getDay();
-      if (dow !== 0 && dow !== 6) return x;
+      if (dow === 0 || dow === 6) continue;
+      out.push(x);
     }
-    return d;
+    return out;
+  }
+
+  // First school day with entrees (else next weekday empty). Matches kid pages.
+  function heroLunchDay(byKey, now) {
+    var candidates = schoolDaysAhead(now, 10);
+    for (var i = 0; i < candidates.length; i++) {
+      var key = dayKey(candidates[i]);
+      var day = byKey[key];
+      if (day && day.entrees && day.entrees.length) {
+        return {
+          date: candidates[i],
+          key: key,
+          entrees: day.entrees,
+          isToday: i === 0 && App.sameDay(candidates[i], now),
+        };
+      }
+    }
+    if (candidates.length) {
+      return {
+        date: candidates[0],
+        key: dayKey(candidates[0]),
+        entrees: (byKey[dayKey(candidates[0])] || {}).entrees || [],
+        isToday: App.sameDay(candidates[0], now),
+      };
+    }
+    return null;
+  }
+
+  function lunchHero(kid) {
+    var lunch = lunchFor(kid);
+    return {
+      school: lunch.school || (kid === 'otto' ? 'Scott' : 'Herbison Woods'),
+      hero: heroLunchDay(lunchDaysFor(kid), App.now()),
+    };
   }
 
   function sameEntrees(a, b) {
@@ -252,77 +288,47 @@
       '</div>';
   }
 
-  var JOKES = [
-    { q: 'Why did the banana go to the doctor?', a: 'It wasn\'t peeling well.' },
-    { q: 'What do you call a bear with no teeth?', a: 'A gummy bear.' },
-    { q: 'Why can\'t you give Elsa a balloon?', a: 'Because she will let it go.' },
-    { q: 'What do you call cheese that isn\'t yours?', a: 'Nacho cheese.' },
-    { q: 'Why did the kid bring a ladder to school?', a: 'Because it was high school.' },
-    { q: 'What\'s brown and sticky?', a: 'A stick.' },
-    { q: 'Why do bees have sticky hair?', a: 'They always use honeycombs.' },
-    { q: 'How do you make a tissue dance?', a: 'Put a little boogie in it.' },
-    { q: 'What do you call a sleeping bull?', a: 'A bulldozer.' },
-    { q: 'Why did the cookie go to the nurse?', a: 'It felt crummy.' },
-    { q: 'What has ears but cannot hear?', a: 'A cornfield.' },
-    { q: 'Why did the math book look so sad?', a: 'It had too many problems.' },
-    { q: 'What do you call a fish wearing a bowtie?', a: 'Sofishticated.' },
-    { q: 'Why don\'t eggs tell jokes?', a: 'They\'d crack each other up.' },
-    { q: 'What\'s a skeleton\'s favorite instrument?', a: 'A trombone. No organs.' },
-  ];
-
-  function jokeOfDay(now) {
-    var start = new Date(now.getFullYear(), 0, 0);
-    var day = Math.floor((now - start) / 86400000);
-    return JOKES[day % JOKES.length];
-  }
-
-  function lunchCard(school, day, entrees, shared) {
+  function lunchCard(school, hero, shared, schoolsLine) {
     var head = shared
       ? 'Lunch'
       : ('Lunch · ' + App.esc(school));
-    var list = entrees.length
-      ? '<ul class="h-lunch-list">' + entrees.slice(0, LUNCH_MAX).map(function (n) {
+    if (!hero) {
+      return '<div class="cl-panel h-tile h-tile--lunch' + (shared ? ' is-shared' : '') + '">' +
+        '<div class="cl-panel-head"><span class="label">' + head + '</span></div>' +
+        '<div class="h-tile-empty">No menu yet</div></div>';
+    }
+    var dayLabel = hero.isToday ? 'Today' : App.fmt.day(hero.date);
+    var list = hero.entrees.length
+      ? '<ul class="h-lunch-list">' + hero.entrees.map(function (n) {
         return '<li>' + App.esc(n) + '</li>';
-      }).join('') + '</ul>' +
-        (entrees.length > LUNCH_MAX ? '<div class="h-more-n">+' + (entrees.length - LUNCH_MAX) + ' more</div>' : '')
+      }).join('') + '</ul>'
       : '<div class="h-tile-empty">No menu yet</div>';
-    var schoolLine = shared
-      ? '<div class="h-lunch-schools">Herbison Woods · Scott</div>'
+    var schoolLine = shared && schoolsLine
+      ? '<div class="h-lunch-schools">' + App.esc(schoolsLine) + '</div>'
       : '';
     return '<div class="cl-panel h-tile h-tile--lunch' + (shared ? ' is-shared' : '') + '">' +
       '<div class="cl-panel-head">' +
       '<span class="label">' + head + '</span>' +
-      '<span class="h-day-date num">' + App.esc(App.fmt.monthShort(day) + ' ' + day.getDate()) + '</span>' +
+      '<span class="h-day-date num">' + App.esc(App.fmt.monthShort(hero.date) + ' ' + hero.date.getDate()) + '</span>' +
       '</div>' +
-      '<div class="h-lunch-day num">' + App.esc(App.fmt.day(day)) + '</div>' +
-      '<div class="h-lunch-sub">Next school day</div>' +
+      '<div class="h-lunch-day num">' + App.esc(dayLabel) + '</div>' +
       schoolLine +
       list +
       '</div>';
   }
 
-  function jokeTile() {
-    var j = jokeOfDay(App.now());
-    return '<div class="cl-panel h-tile h-tile--joke">' +
-      '<div class="cl-panel-head"><span class="label">Joke of the day</span></div>' +
-      '<p class="h-joke-q">' + App.esc(j.q) + '</p>' +
-      '<p class="h-joke-a">' + App.esc(j.a) + '</p>' +
-      '</div>';
-  }
-
   function sideTiles() {
-    var day = nextSchoolDay(App.now());
-    var maya = lunchEntrees('maya', day);
-    var otto = lunchEntrees('otto', day);
-    var schoolMaya = lunchFor('maya').school || 'Herbison Woods';
-    var schoolOtto = lunchFor('otto').school || 'Scott';
-    var lunch = sameEntrees(maya, otto)
-      ? lunchCard(schoolMaya, day, maya.length ? maya : otto, true)
+    var maya = lunchHero('maya');
+    var otto = lunchHero('otto');
+    var mayaE = maya.hero ? maya.hero.entrees : [];
+    var ottoE = otto.hero ? otto.hero.entrees : [];
+    var lunch = sameEntrees(mayaE, ottoE)
+      ? lunchCard(maya.school, maya.hero || otto.hero, true, maya.school + ' · ' + otto.school)
       : ('<div class="h-lunch-split">' +
-        lunchCard(schoolMaya, day, maya, false) +
-        lunchCard(schoolOtto, day, otto, false) +
+        lunchCard(maya.school, maya.hero, false) +
+        lunchCard(otto.school, otto.hero, false) +
         '</div>');
-    return '<div class="h-side">' + lunch + jokeTile() + '</div>';
+    return '<div class="h-side">' + lunch + '</div>';
   }
 
   function kidHeader(cfg) {

@@ -99,11 +99,8 @@
 .h-bento:has(.h-lunch-split) .h-side {
   grid-column: 1 / -1;
   grid-row: 2;
-  flex-direction: row;
-  align-items: stretch;
 }
-.h-bento:has(.h-lunch-split) .h-lunch-split { flex: 1.6; }
-.h-bento:has(.h-lunch-split) .h-tile--joke { flex: 1; max-width: 420px; }
+.h-bento:has(.h-lunch-split) .h-lunch-split { flex: 1; }
 
 .h-kid {
   display: flex; flex-direction: column; gap: 6px;
@@ -249,16 +246,14 @@
   line-height: 1.1;
 }
 
-/* Right column: lunch + joke */
+/* Right column: lunch only */
 .h-side {
   display: flex;
   flex-direction: column;
-  gap: 10px;
   min-height: 0;
   overflow: hidden;
 }
 .h-side .h-tile--lunch { flex: 1; min-height: 0; }
-.h-side .h-tile--joke { flex: none; }
 
 /* Lunch — flat panel, no nested gray box */
 .h-lunch-day {
@@ -267,16 +262,6 @@
   line-height: .95;
   letter-spacing: -.03em;
   flex: none;
-}
-.h-lunch-sub {
-  font-size: var(--h-meta);
-  font-weight: 800;
-  font-stretch: 75%;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--mute);
-  flex: none;
-  margin-top: -2px;
 }
 .h-lunch-schools {
   font-size: var(--h-meta);
@@ -325,29 +310,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   min-height: 0;
-  flex: 1.35;
+  flex: 1;
 }
 .h-lunch-split .h-tile--lunch { min-height: 0; }
-
-/* Joke of the day */
-.h-tile--joke {
-  background: var(--card);
-  gap: 10px;
-}
-.h-joke-q {
-  font-size: var(--h-body);
-  font-weight: 650;
-  line-height: 1.25;
-  color: var(--ink);
-  margin: 0;
-}
-.h-joke-a {
-  margin: 0;
-  font-size: var(--h-body);
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -.015em;
-}
 
 /* Keep ring helper styles for Chores view */
 .h-rings { display: flex; justify-content: space-between; }

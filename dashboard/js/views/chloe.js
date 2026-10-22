@@ -404,11 +404,16 @@
       weekCalendar(due) +
       pastDueTable(past) +
       '</div>' +
-      '<aside class="cl-side">' + lunchPanel() + todoPanel() + '</aside>' +
+      '<aside class="cl-side">' + lunchPanel() + App.jokeTile(KID) + todoPanel() + '</aside>' +
       '</div></div>';
   }
 
   function onClick(e) {
+    var joke = e.target.closest('[data-joke]');
+    if (joke && V.el.contains(joke)) {
+      App.openJoke(joke.getAttribute('data-joke'));
+      return;
+    }
     var lunch = e.target.closest('[data-lunch-date]');
     if (lunch && V.el.contains(lunch)) {
       lunchSheet(V.lunchByDate[lunch.getAttribute('data-lunch-date')]);
